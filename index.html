@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Josephus Problem Simulator — Circular Linked List</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --amber: #f59e0b;
+      --rose: #ef4444;
+      --emerald: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 20px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card);
+      padding: 16px 24px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    header h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+
+    header p {
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    .badge-tag {
+      background: #eef2ff;
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid #c7d2fe;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 320px 1fr 350px;
+      gap: 20px;
+    }
+
+    @media (max-width: 1080px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .card-title-spaced {
+      margin-top: 8px;
+    }
+
+    .card-title-clean {
+      border: none;
+      padding: 0;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .control-label span.val {
+      color: var(--primary);
+      font-family: monospace;
+      font-size: 0.95rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    button {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: #f1f5f9;
+      color: var(--text);
+      transition: all 0.15s ease;
+    }
+
+    button:hover:not(:disabled) {
+      background: #e2e8f0;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      grid-column: span 2;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn-full {
+      grid-column: span 2;
+    }
+
+    .canvas-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      min-height: 480px;
+    }
+
+    svg#simCanvas {
+      width: 100%;
+      max-width: 500px;
+      height: 460px;
+      overflow: visible;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-active {
+      background: #ffffff;
+      border: 2px solid #475569;
+    }
+
+    .dot-curr {
+      background: #fef3c7;
+      border: 2px solid #f59e0b;
+    }
+
+    .dot-elim {
+      background: #fee2e2;
+      border: 2px solid #ef4444;
+    }
+
+    .dot-surv {
+      background: #d1fae5;
+      border: 2px solid #10b981;
+    }
+
+    .cll-bar {
+      margin-top: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 20px;
+    }
+
+    .cll-chain {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+
+    .chain-node {
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      font-weight: 600;
+    }
+
+    .chain-node.active {
+      background: #fef3c7;
+      border-color: var(--amber);
+      color: #92400e;
+    }
+
+    .chain-node.survivor {
+      background: #d1fae5;
+      border-color: var(--emerald);
+      color: #065f46;
+    }
+
+    .chain-arrow {
+      color: var(--muted);
+    }
+
+    .chain-back {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .stat-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.85rem;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .stat-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .text-emerald {
+      color: var(--emerald);
+    }
+
+    .empty-msg {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .elim-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-height: 90px;
+      overflow-y: auto;
+    }
+
+    .elim-badge {
+      font-size: 0.75rem;
+      font-family: monospace;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .trace-log {
+      flex: 1;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.78rem;
+      height: 250px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .log-entry {
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 4px;
+    }
+
+    .log-step { color: #93c5fd; }
+    .log-elim { color: #fca5a5; font-weight: bold; }
+    .log-ptr  { color: #fcd34d; }
+    .log-win  { color: #6ee7b7; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Josephus Problem Simulator</h1>
+        <p>Interactive Circular Singly Linked List Visualizer &amp; Step-by-Step Elimination Trace</p>
+      </div>
+      <span class="badge-tag">Data Structure: Circular Linked List</span>
+    </header>
+
+    <div class="grid">
+      <!-- Left Column: Controls -->
+      <div class="card">
+        <div class="card-title">Configuration</div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <label for="inputN">Number of People (N)</label>
+            <span class="val" id="valN">12</span>
+          </div>
+          <input type="range" id="inputN" title="Number of People (N)" min="2" max="30" value="12" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <label for="inputK">Step Count (k)</label>
+            <span class="val" id="valK">3</span>
+          </div>
+          <input type="range" id="inputK" title="Step Count (k)" min="1" max="15" value="3" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <label for="inputStart">Starting Person</label>
+            <span class="val" id="valStart">1</span>
+          </div>
+          <input type="range" id="inputStart" title="Starting Person" min="1" max="12" value="1" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <label for="inputSurv">Target Survivors (s)</label>
+            <span class="val" id="valSurv">1</span>
+          </div>
+          <input type="range" id="inputSurv" title="Target Survivors (s)" min="1" max="5" value="1" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <label for="inputSpeed">Animation Delay (ms)</label>
+            <span class="val" id="valSpeed">450ms</span>
+          </div>
+          <input type="range" id="inputSpeed" title="Animation Delay (ms)" min="100" max="1200" step="50" value="450" />
+        </div>
+
+        <div class="card-title card-title-spaced">Playback Controls</div>
+        <div class="btn-group">
+          <button type="button" id="btnPlay" class="btn-primary">▶ Start Auto-Play</button>
+          <button type="button" id="btnStep">Hop 1 Step</button>
+          <button type="button" id="btnElim">Next Elimination</button>
+          <button type="button" id="btnReset" class="btn-full">↺ Reset Ring</button>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-row">
+            <span>Remaining Nodes:</span>
+            <strong id="statRemaining">12</strong>
+          </div>
+          <div class="stat-row">
+            <span>Current Pointer (curr):</span>
+            <strong id="statCurr">Node #1</strong>
+          </div>
+          <div class="stat-row">
+            <span>Previous Pointer (prev):</span>
+            <strong id="statPrev">Node #12</strong>
+          </div>
+          <div class="stat-row">
+            <span>Formula Survivor (s=1):</span>
+            <strong id="statFormula" class="text-emerald">#10</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Column: SVG Visualization -->
+      <div class="card canvas-wrapper">
+        <svg id="simCanvas" viewBox="0 0 500 460">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#6366f1" />
+            </marker>
+          </defs>
+          <g id="edgesGroup"></g>
+          <g id="nodesGroup"></g>
+          <g id="hudGroup" transform="translate(250, 230)" text-anchor="middle">
+            <circle r="72" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2" />
+            <text id="hudRound" y="-22" font-size="12" font-weight="700" fill="#64748b">READY</text>
+            <text id="hudStep" y="4" font-size="18" font-weight="800" fill="#0f172a">Step 1 / 3</text>
+            <text id="hudOp" y="26" font-size="11" font-family="monospace" fill="#4f46e5">curr = Node(1)</text>
+          </g>
+        </svg>
+
+        <div class="legend">
+          <span class="legend-item"><span class="dot dot-active"></span> Active Node</span>
+          <span class="legend-item"><span class="dot dot-curr"></span> Current Pointer (curr)</span>
+          <span class="legend-item"><span class="dot dot-elim"></span> Eliminated</span>
+          <span class="legend-item"><span class="dot dot-surv"></span> Survivor</span>
+        </div>
+      </div>
+
+      <!-- Right Column: Elimination Trace -->
+      <div class="card">
+        <div class="card-title">Elimination Order</div>
+        <div id="elimBadges" class="elim-badges">
+          <span class="empty-msg">No nodes eliminated yet.</span>
+        </div>
+
+        <div class="card-title">Step-by-Step Trace Log</div>
+        <div id="traceLog" class="trace-log"></div>
+      </div>
+    </div>
+
+    <!-- Bottom Bar: Live Circular Linked List Pointer Chain -->
+    <div class="cll-bar">
+      <div class="card-title card-title-clean">Live Circular Linked List (.next Pointers)</div>
+      <div id="cllChain" class="cll-chain"></div>
+    </div>
+  </div>
+
+  <script>
+    class Node {
+      constructor(id) {
+        this.id = id;
+        this.next = null;
+        this.eliminated = false;
+      }
+    }
+
+    class CircularLinkedList {
+      constructor(n) {
+        this.head = null;
+        this.tail = null;
+        this.size = 0;
+        this.nodesById = new Map();
+        this.build(n);
+      }
+
+      build(n) {
+        this.head = null;
+        this.tail = null;
+        this.size = n;
+        this.nodesById.clear();
+
+        let prev = null;
+        for (let i = 1; i <= n; i++) {
+          const node = new Node(i);
+          this.nodesById.set(i, node);
+          if (!this.head) this.head = node;
+          if (prev) prev.next = node;
+          prev = node;
+        }
+        this.tail = prev;
+        if (this.tail) {
+          this.tail.next = this.head;
+        }
+      }
+
+      removeNode(prev, curr) {
+        if (this.size <= 1) return;
+        prev.next = curr.next;
+        curr.eliminated = true;
+        if (curr === this.head) {
+          this.head = curr.next;
+        }
+        if (curr === this.tail) {
+          this.tail = prev;
+        }
+        this.size--;
+      }
+
+      getActiveNodes() {
+        if (!this.head || this.size === 0) return [];
+        const result = [];
+        let temp = this.head;
+        for (let i = 0; i < this.size; i++) {
+          result.push(temp);
+          temp = temp.next;
+        }
+        return result;
+      }
+    }
+
+    const inputN = document.getElementById('inputN');
+    const inputK = document.getElementById('inputK');
+    const inputStart = document.getElementById('inputStart');
+    const inputSurv = document.getElementById('inputSurv');
+    const inputSpeed = document.getElementById('inputSpeed');
+
+    const valN = document.getElementById('valN');
+    const valK = document.getElementByByById ? document.getElementById('valK') : document.querySelector('#valK');
+    const valStart = document.getElementById('valStart');
+    const valSurv = document.getElementById('valSurv');
+    const valSpeed = document.getElementById('valSpeed');
+
+    const btnPlay = document.getElementById('btnPlay');
+    const btnStep = document.getElementById('btnStep');
+    const btnElim = document.getElementById('btnElim');
+    const btnReset = document.getElementById('btnReset');
+
+    const edgesGroup = document.getElementById('edgesGroup');
+    const nodesGroup = document.getElementById('nodesGroup');
+    const hudRound = document.getElementById('hudRound');
+    const hudStep = document.getElementById('hudStep');
+    const hudOp = document.getElementById('hudOp');
+
+    const statRemaining = document.getElementById('statRemaining');
+    const statCurr = document.getElementById('statCurr');
+    const statPrev = document.getElementById('statPrev');
+    const statFormula = document.getElementById('statFormula');
+
+    const elimBadges = document.getElementById('elimBadges');
+    const traceLog = document.getElementById('traceLog');
+    const cllChain = document.getElementById('cllChain');
+
+    let cll = null;
+    let curr = null;
+    let prev = null;
+    let stepCounter = 1;
+    let roundCounter = 1;
+    let eliminatedOrder = [];
+    let timer = null;
+    let isFinished = false;
+    let lastEliminatedId = null;
+
+    function josephusFormula(n, k, start = 1) {
+      let res = 0;
+      for (let i = 2; i <= n; i++) {
+        res = (res + k) % i;
+      }
+      return ((res + start - 1) % n) + 1;
+    }
+
+    function initSimulator() {
+      stopAutoPlay();
+      const N = parseInt(inputN.value, 10);
+      const K = parseInt(inputK.value, 10);
+
+      inputStart.max = N;
+      if (parseInt(inputStart.value, 10) > N) inputStart.value = N;
+      inputSurv.max = Math.max(1, N - 1);
+      if (parseInt(inputSurv.value, 10) >= N) inputSurv.value = Math.max(1, N - 1);
+
+      const startId = parseInt(inputStart.value, 10);
+      const targetSurvivors = parseInt(inputSurv.value, 10);
+
+      valN.textContent = N;
+      valK.textContent = K;
+      valStart.textContent = startId;
+      valSurv.textContent = targetSurvivors;
+      valSpeed.textContent = inputSpeed.value + 'ms';
+
+      cll = new CircularLinkedList(N);
+
+      curr = cll.head;
+      prev = cll.tail;
+      while (curr.id !== startId) {
+        prev = curr;
+        curr = curr.next;
+      }
+
+      stepCounter = 1;
+      roundCounter = 1;
+      eliminatedOrder = [];
+      isFinished = false;
+      lastEliminatedId = null;
+
+      hudRound.textContent = 'ROUND 1';
+      hudStep.textContent = `Step 1 / ${K}`;
+      hudOp.textContent = `curr = Node(${curr.id})`;
+
+      traceLog.innerHTML = '';
+      appendLog(`Initialized Circular Linked List with N=${N}, k=${K}, start=#${startId}.`, 'log-step');
+
+      btnStep.disabled = false;
+      btnElim.disabled = false;
+      btnPlay.disabled = false;
+
+      renderAll();
+    }
+
+    function stepOnce() {
+      if (isFinished) return;
+
+      const K = parseInt(inputK.value, 10);
+      const targetSurvivors = parseInt(inputSurv.value, 10);
+
+      if (cll.size <= targetSurvivors) {
+        finishSimulation();
+        return;
+      }
+
+      lastEliminatedId = null;
+
+      if (stepCounter < K) {
+        const fromId = curr.id;
+        prev = curr;
+        curr = curr.next;
+        stepCounter++;
+
+        hudRound.textContent = `ROUND ${roundCounter}`;
+        hudStep.textContent = `Step ${stepCounter} / ${K}`;
+        hudOp.textContent = `curr = curr.next (#${curr.id})`;
+        appendLog(`Round ${roundCounter}: Hop ${stepCounter - 1} → pointer moved #${fromId} to #${curr.id}`, 'log-step');
+      } else {
+        const removedId = curr.id;
+        const nextNode = curr.next;
+
+        cll.removeNode(prev, curr);
+        eliminatedOrder.push(removedId);
+        lastEliminatedId = removedId;
+
+        appendLog(
+          `Round ${roundCounter}: Node #${removedId} ELIMINATED | Pointer updated: Node(${prev.id}).next = Node(${nextNode.id})`,
+          'log-elim'
+        );
+
+        curr = nextNode;
+        roundCounter++;
+        stepCounter = 1;
+
+        if (cll.size <= targetSurvivors) {
+          finishSimulation();
+          return;
+        } else {
+          hudRound.textContent = `ROUND ${roundCounter}`;
+          hudStep.textContent = `Step 1 / ${K}`;
+          hudOp.textContent = `Node(${prev.id}).next = Node(${curr.id})`;
+        }
+      }
+
+      renderAll();
+    }
+
+    function eliminateNext() {
+      if (isFinished) return;
+      const currentRound = roundCounter;
+      while (!isFinished && roundCounter === currentRound) {
+        stepOnce();
+      }
+    }
+
+    function finishSimulation() {
+      isFinished = true;
+      stopAutoPlay();
+      const survivors = cll.getActiveNodes().map(n => `#${n.id}`).join(', ');
+      hudRound.textContent = 'COMPLETE';
+      hudStep.textContent = `Survivor: ${survivors}`;
+      hudOp.textContent = 'curr.next == curr';
+      appendLog(`Simulation finished! Survivor(s): ${survivors}`, 'log-win');
+
+      btnStep.disabled = true;
+      btnElim.disabled = true;
+      btnPlay.disabled = true;
+      renderAll();
+    }
+
+    function toggleAutoPlay() {
+      if (timer) {
+        stopAutoPlay();
+      } else {
+        btnPlay.textContent = '⏸ Pause Auto-Play';
+        const delay = parseInt(inputSpeed.value, 10);
+        timer = setInterval(() => {
+          stepOnce();
+        }, delay);
+      }
+    }
+
+    function stopAutoPlay() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+      btnPlay.textContent = '▶ Start Auto-Play';
+    }
+
+    function renderAll() {
+      const N = parseInt(inputN.value, 10);
+      const K = parseInt(inputK.value, 10);
+      const startId = parseInt(inputStart.value, 10);
+
+      statRemaining.textContent = cll.size;
+      statCurr.textContent = curr ? `Node #${curr.id}` : '-';
+      statPrev.textContent = prev ? `Node #${prev.id}` : '-';
+      statFormula.textContent = `#${josephusFormula(N, K, startId)}`;
+
+      const cx = 250;
+      const cy = 230;
+      const radius = 175;
+      const coords = new Map();
+
+      for (let i = 1; i <= N; i++) {
+        const angle = ((2 * Math.PI * (i - 1)) / N) - (Math.PI / 2);
+        const x = cx + radius * Math.cos(angle);
+        const y = cy + radius * Math.sin(angle);
+        coords.set(i, { x, y });
+      }
+
+      edgesGroup.innerHTML = '';
+      const activeNodes = cll.getActiveNodes();
+      const nodeRadius = N > 22 ? 15 : 19;
+
+      activeNodes.forEach(node => {
+        const from = coords.get(node.id);
+        const to = coords.get(node.next.id);
+        if (!from || !to) return;
+        if (node.id === node.next.id) return;
+
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist === 0) return;
+
+        const ux = dx / dist;
+        const uy = dy / dist;
+
+        const startX = from.x + ux * (nodeRadius + 3);
+        const startY = from.y + uy * (nodeRadius + 3);
+        const endX = to.x - ux * (nodeRadius + 7);
+        const endY = to.y - uy * (nodeRadius + 7);
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', startX);
+        line.setAttribute('y1', startY);
+        line.setAttribute('x2', endX);
+        line.setAttribute('y2', endY);
+        line.setAttribute('stroke', '#6366f1');
+        line.setAttribute('stroke-width', '2');
+        line.setAttribute('marker-end', 'url(#arrow)');
+        edgesGroup.appendChild(line);
+      });
+
+      nodesGroup.innerHTML = '';
+      for (let i = 1; i <= N; i++) {
+        const nodeObj = cll.nodesById.get(i);
+        const { x, y } = coords.get(i);
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('transform', `translate(${x}, ${y})`);
+
+        let fill = '#ffffff';
+        let stroke = '#475569';
+        let textColor = '#0f172a';
+        let opacity = '1';
+        let strokeDash = '';
+
+        if (nodeObj.eliminated) {
+          fill = '#fee2e2';
+          stroke = '#ef4444';
+          textColor = '#991b1b';
+          opacity = nodeObj.id === lastEliminatedId ? '0.95' : '0.35';
+          strokeDash = '4 2';
+        } else if (isFinished) {
+          fill = '#d1fae5';
+          stroke = '#10b981';
+          textColor = '#065f46';
+        } else if (curr && curr.id === i) {
+          fill = '#fef3c7';
+          stroke = '#f59e0b';
+          textColor = '#92400e';
+        }
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('r', nodeRadius);
+        circle.setAttribute('fill', fill);
+        circle.setAttribute('stroke', stroke);
+        circle.setAttribute('stroke-width', (curr && curr.id === i && !isFinished) ? '3.5' : '2');
+        circle.setAttribute('opacity', opacity);
+        if (strokeDash) circle.setAttribute('stroke-dasharray', strokeDash);
+
+        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        label.setAttribute('text-anchor', 'middle');
+        label.setAttribute('dy', '0.35em');
+        label.setAttribute('font-size', N > 22 ? '11' : '13');
+        label.setAttribute('font-weight', '700');
+        label.setAttribute('fill', textColor);
+        label.setAttribute('opacity', opacity);
+        label.textContent = i;
+
+        g.appendChild(circle);
+        g.appendChild(label);
+        nodesGroup.appendChild(g);
+      }
+
+      if (eliminatedOrder.length === 0) {
+        elimBadges.innerHTML = '<span class="empty-msg">No nodes eliminated yet.</span>';
+      } else {
+        elimBadges.innerHTML = eliminatedOrder
+          .map((id, idx) => `<span class="elim-badge">${idx + 1}. #${id}</span>`)
+          .join('');
+      }
+
+      cllChain.innerHTML = '';
+      activeNodes.forEach((node) => {
+        const span = document.createElement('span');
+        span.className = 'chain-node';
+        if (isFinished) {
+          span.classList.add('survivor');
+        } else if (curr && curr.id === node.id) {
+          span.classList.add('active');
+        }
+        span.textContent = `[Node ${node.id}]`;
+        cllChain.appendChild(span);
+
+        const arrow = document.createElement('span');
+        arrow.className = 'chain-arrow';
+        arrow.textContent = '→';
+        cllChain.appendChild(arrow);
+      });
+
+      if (activeNodes.length > 0) {
+        const backSpan = document.createElement('span');
+        backSpan.className = 'chain-back';
+        backSpan.textContent = `(back to Head: Node ${activeNodes[0].id})`;
+        cllChain.appendChild(backSpan);
+      }
+    }
+
+    function appendLog(message, className = '') {
+      const div = document.createElement('div');
+      div.className = `log-entry ${className}`;
+      div.textContent = message;
+      traceLog.appendChild(div);
+      traceLog.scrollTop = traceLog.scrollHeight;
+    }
+
+    [inputN, inputK, inputStart, inputSurv].forEach(el => {
+      el.addEventListener('input', initSimulator);
+    });
+
+    inputSpeed.addEventListener('input', () => {
+      valSpeed.textContent = inputSpeed.value + 'ms';
+      if (timer) {
+        stopAutoPlay();
+        toggleAutoPlay();
+      }
+    });
+
+    btnPlay.addEventListener('click', toggleAutoPlay);
+    btnStep.addEventListener('click', () => {
+      stopAutoPlay();
+      stepOnce();
+    });
+    btnElim.addEventListener('click', () => {
+      stopAutoPlay();
+      eliminateNext();
+    });
+    btnReset.addEventListener('click', initSimulator);
+
+    initSimulator();
+  </script>
+</body>
+</html>
